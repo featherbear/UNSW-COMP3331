@@ -39,8 +39,6 @@ server.bind(("", PORT))
 server.listen(1)
 
 print(f"Server listening on port {PORT}")
-
-baseDir = os.path.normpath(os.path.join('./', public_dir)) + "/"
   
 while True:
     (sock, addr) = server.accept()
@@ -64,12 +62,14 @@ while True:
             return
         
         # Sanitise - prevent directory traversal
-        filepath = os.path.normpath(baseDir + PATH).lstrip(baseDir)
+        filepath = os.path.normpath("./" + PATH).lstrip("./")
 
         # Default to index.html
         if filepath == "":
             filepath = "index.html"
         
+        filepath = os.path.join(public_dir, filepath)
+
         # Check if file exists
         if not os.path.exists(filepath):
             sock.send("".join([
@@ -92,7 +92,7 @@ while True:
         with open(filepath, "rb") as f:
             sock.send("".join([
                 f'{PROTOCOL} 200 OK\r\n',
-                'Content-Type: {mimetypes.guess_type(filepath)[0]}\r\n\r\n',p
+                'Content-Type: {mimetypes.guess_type(filepath)[0]}\r\n\r\n',
             ]).encode())
             sock.send(f.read())
 
