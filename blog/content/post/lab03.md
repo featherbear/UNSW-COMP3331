@@ -33,12 +33,12 @@ sequenceDiagrams:
 * `PTR` - Pointer - Like the alias, but doesn't keep trying to resolve -> Used for Reverse DNS
 * `SOA` - Start Of Authority - Authoritative information.
 
----
+<!-- ---
 
 |TYPE|EXAMPLE|
 |:--|:--|
 |A|example.com A 1400 IN 192.168.1.1|
-|CNAME|ftp.example CNAME 1400 IN example.com|
+|CNAME|ftp.example CNAME 1400 IN example.com| -->
 
 
 # Tracing DNS with Wireshark
@@ -87,7 +87,7 @@ Additional Records
 * `W20NS.mit.edu: type A, class IN, addr 18.70.0.160`
 
 `www.mit.edu` points to the address `18.7.22.83`.  
-There are three nameservers which handle the (sub)domain names for `mit.edu` - `BITSY` (`18.72.0.3`), `STRAWB` (`18.71.0.151`) nd `W20NS` (`18.70.0.160`).
+There are three nameservers which handle the (sub)domain names for `mit.edu` - `BITSY` (`18.72.0.3`), `STRAWB` (`18.71.0.151`) and `W20NS` (`18.70.0.160`).
 
 # Digging into DNS
 
@@ -135,7 +135,7 @@ t.au.                   7678    IN      AAAA    2a01:8840:c1::1
 
 `www.cecs.anu.edu.au` points to `150.203.161.98`. An `A` record DNS query is sent to get this answer.
 
-We can confirm thi result with a `ping`, as seen below
+We can confirm this result with a `ping`, as seen below
 
 ```
 $> ping www.cecs.anu.edu.au -c 1
@@ -340,6 +340,8 @@ ns5.yahoo.com.          62254   IN      AAAA    2406:2000:ff60::53
 ;; MSG SIZE  rcvd: 399
 ```
 
+The mail servers are `mta5.am0.yahoodns.net`, `mta6.am0.yahoodns.net`, and `mta7.am0.yahoodns.net`.
+
 An authoritive answer would have the `aa` flag in the dig answer flags.  
 We do not have this flag, and therefore we do not have an authoritve answer.
 
@@ -391,6 +393,8 @@ ns5.yahoo.com.          86400   IN      A       202.165.97.53
 ;; WHEN: Fri Mar 13 12:08:58 AEDT 2020
 ;; MSG SIZE  rcvd: 399
 ```
+
+The mail servers are `mta5.am0.yahoodns.net`, `mta6.am0.yahoodns.net`, and `mta7.am0.yahoodns.net`.
 
 We now have the `aa` flag in the answer, meaning that this was an authoritive answer.
 
@@ -697,3 +701,4 @@ Additionally, a machine can have several IP addresses (i.e. several network card
 
 # A Simple Web Server
 
+File: [WebServer.py](./aSimpleWebServer/WebServer.py)

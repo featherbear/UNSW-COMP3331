@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+public_dir = "public"
+
 """
 In this exercise, you will learn the basics of TCP socket programming: how to create a socket, bind it to a specific address and port, as well as send and receive an HTTP packet. You will also learn some basics of HTTP header format. You will develop a web server that handles one HTTP request at a time. Specifically, your web server should do the following:
 
@@ -38,6 +40,8 @@ server.listen(1)
 
 print(f"Server listening on port {PORT}")
 
+baseDir = os.path.normpath(os.path.join('./', public_dir)) + "/"
+  
 while True:
     (sock, addr) = server.accept()
     def _(sock, addr):
@@ -60,7 +64,7 @@ while True:
             return
         
         # Sanitise - prevent directory traversal
-        filepath = os.path.normpath('./' + PATH).lstrip('./')
+        filepath = os.path.normpath(baseDir + PATH).lstrip(baseDir)
 
         # Default to index.html
         if filepath == "":
@@ -88,10 +92,14 @@ while True:
         with open(filepath, "rb") as f:
             sock.send("".join([
                 f'{PROTOCOL} 200 OK\r\n',
-                'Content-Type: {mimetypes.guess_type(filepath)[0]}\r\n\r\n',
+                'Content-Type: {mimetypes.guess_type(filepath)[0]}\r\n\r\n',p
             ]).encode())
             sock.send(f.read())
 
-    _(sock, addr)
+    try:
+      _(sock, addr)
+    except Exception as e:
+      print(e)
+
     sock.close()
 
