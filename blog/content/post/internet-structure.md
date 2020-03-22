@@ -23,4 +23,4 @@ In fact, it would take O(n^2) connections.
 * Global ISPs interconnect via Internet Exchange Points (IXPs), and can also peer directly.  
 * Content providers / CDNs may run their own ISP network. 
 
-![](Screenshot from 2020-03-04 19-49-32.png)
+![](./Screenshot from 2020-03-04 19-49-32.png)
