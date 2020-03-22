@@ -58,19 +58,9 @@ The server application often runs on a machine that is always on (high availabil
 * The user-side of the application
 * Initiates the communication to the server
 
-## Peer-to-Peer
+## Peer to Peer
 
-* Each device is both a client and a server
-* Does not require a machine that is always on
-* Self scability - each client adds extra capacity
-* Parallelism, less contention (resource access conflict)
-* Redundancy
-
-There are some cons though:
-
-* Action uncertainty - authorisation
-* State uncertainty
-* Algorithm complexity
+[More](../p2p)
 
 # Application Layer
 
