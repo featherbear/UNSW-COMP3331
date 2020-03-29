@@ -1,0 +1,977 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Lab 03 - DNS &amp; Socket Programming - COMP3331 Musings</title><meta name=renderer content=webkit><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv=cache-control content=no-transform><meta http-equiv=cache-control content=no-siteapp><meta name=theme-color content=#f8f5ec><meta name=msapplication-navbutton-color content=#f8f5ec><meta name=apple-mobile-web-app-capable content=yes><meta name=apple-mobile-web-app-status-bar-style content=#f8f5ec><meta name=author content=z5206677><meta name=description content="Explore DNS records  DNS servers use different record types for different purposes."><meta name=keywords content=Hugo,theme,even><meta name=generator content="Hugo 0.58.2 with theme even"><link rel=canonical href=../../post/lab03/><link rel=apple-touch-icon sizes=180x180 href=../../apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=../../favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=../../favicon-16x16.png><link rel=manifest href=../../manifest.json><link rel=mask-icon href=../../safari-pinned-tab.svg color=#5bbad5><link href=../../dist/even.c2a46f00.min.css rel=stylesheet><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin=anonymous><link rel=stylesheet href=../../css/typedjs.shortcode.css><meta property=og:title content="Lab 03 - DNS &amp; Socket Programming"><meta property=og:description content="Explore DNS records  DNS servers use different record types for different purposes."><meta property=og:type content=article><meta property=og:url content=/post/lab03/><meta property=article:published_time content=2020-03-13T11:02:27+11:00><meta property=article:modified_time content=2020-03-13T11:02:27+11:00><meta itemprop=name content="Lab 03 - DNS &amp; Socket Programming"><meta itemprop=description content="Explore DNS records  DNS servers use different record types for different purposes."><meta itemprop=datePublished content=2020-03-13T11:02:27&#43;11:00><meta itemprop=dateModified content=2020-03-13T11:02:27&#43;11:00><meta itemprop=wordCount content=3652><meta itemprop=keywords content><meta name=twitter:card content=summary><meta name=twitter:title content="Lab 03 - DNS &amp; Socket Programming"><meta name=twitter:description content="Explore DNS records  DNS servers use different record types for different purposes."><!--[if lte IE 9]><script src=https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js></script><![endif]--><!--[if lt IE 9]><script src=https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js></script><script src=https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js></script><![endif]--></head><body><div id=mobile-navbar class=mobile-navbar><div class=mobile-header-logo><a href=../../ class=logo>COMP3331 Musings</a></div><div class=mobile-navbar-icon><span></span><span></span><span></span></div></div><nav id=mobile-menu class="mobile-menu slideout-menu"><ul class=mobile-menu-list><a href=../../><li class=mobile-menu-item>Home</li></a><a href=https://github.com/featherbear/UNSW-COMP3331><li class=mobile-menu-item>GitHub</li></a><a href=../../categories/><li class=mobile-menu-item>Categories</li></a></ul></nav><div class=container id=mobile-panel><header id=header class=header><div class=logo-wrapper><a href=../../ class=logo>COMP3331 Musings</a></div><nav class=site-navbar><ul id=menu class=menu><li class=menu-item><a class=menu-item-link href=../../>Home</a></li><li class=menu-item><a class=menu-item-link href=https://github.com/featherbear/UNSW-COMP3331>GitHub</a></li><li class=menu-item><a class=menu-item-link href=../../categories/>Categories</a></li></ul></nav></header><main id=main class=main><div class=content-wrapper><div id=content class=content><article class=post><header class=post-header><h1 class=post-title>Lab 03 - DNS &amp; Socket Programming</h1><div class=post-meta><span class=post-time>2020-03-13</span></div></header><div class=post-toc id=post-toc><h2 class=post-toc-title>Contents</h2><div class="post-toc-content always-active"><nav id=TableOfContents><ul><li><a href=#explore-dns-records>Explore DNS records</a></li><li><a href=#tracing-dns-with-wireshark>Tracing DNS with Wireshark</a><ul><li><a href=#what-transport-layer-protocol-is-being-used-by-the-dns-messages>What transport layer protocol is being used by the DNS messages?</a></li><li><a href=#what-is-the-source-and-destination-port-for-the-dns-query-message-and-the-corresponding-response>What is the source and destination port for the DNS query message and the corresponding response?</a></li><li><a href=#to-what-ip-address-is-the-dns-query-message-sent-is-this-the-same-as-the-default-local-dns-server>To what IP address is the DNS query message sent? Is this the same as the default local DNS server?</a></li><li><a href=#how-many-apos-questions-apos-are-contained-in-the-dns-query-message-what-apos-type-apos-of-dns-queries-are-they-does-the-query-message-also-contain-any-apos-answers-apos>How many &apos;questions&apos; are contained in the DNS query message? What &apos;Type&apos; of DNS queries are they? Does the query message also contain any &apos;answers&apos;?</a></li></ul></li><li><a href=#examine-the-dns-response-message-provide-details-of-the-contents-of-the-apos-answers-apos-apos-authority-apos-and-apos-additional-information-apos-fields-what-can-you-infer-from-these>Examine the DNS response message. Provide details of the contents of the &apos;Answers&apos;, &apos;Authority&apos; and &apos;Additional Information&apos; fields. What can you infer from these?</a></li><li><a href=#digging-into-dns>Digging into DNS</a><ul><li><a href=#what-is-the-ip-address-of-www-cecs-anu-edu-au-what-type-of-dns-query-is-sent-to-get-this-answer>What is the IP address of www.cecs.anu.edu.au? What type of DNS query is sent to get this answer?</a></li><li><a href=#what-is-the-canonical-name-for-the-cecs-anu-web-server-suggest-a-reason-for-having-an-alias-for-this-server>What is the canonical name for the CECS ANU web server? Suggest a reason for having an alias for this server.</a></li><li><a href=#what-can-you-make-of-the-rest-of-the-response-i-e-the-details-available-in-the-authority-and-additional-sections>What can you make of the rest of the response (i.e. the details available in the Authority and Additional sections)?</a></li><li><a href=#what-is-the-ip-address-of-the-local-nameserver-for-your-machine>What is the IP address of the local nameserver for your machine?</a></li><li><a href=#what-are-the-dns-nameservers-for-the-apos-cecs-anu-edu-au-apos-domain-note-the-domain-name-is-cecs-anu-edu-au-and-not-www-cecs-anu-edu-au-find-out-their-ip-addresses-what-type-of-dns-query-is-sent-to-obtain-this-information>What are the DNS nameservers for the &apos;cecs.anu.edu.au&apos; domain (note: the domain name is cecs.anu.edu.au and not www.cecs.anu.edu.au )? Find out their IP addresses? What type of DNS query is sent to obtain this information?</a></li><li><a href=#what-is-the-dns-name-associated-with-the-ip-address-111-68-101-54-what-type-of-dns-query-is-sent-to-obtain-this-information>What is the DNS name associated with the IP address 111.68.101.54? What type of DNS query is sent to obtain this information?</a></li><li><a href=#run-dig-and-query-the-cse-nameserver-129-94-242-33-for-the-mail-servers-for-yahoo-mail-again-the-domain-name-is-yahoo-com-not-www-yahoo-com-did-you-get-an-authoritative-answer-why>Run dig and query the CSE nameserver (129.94.242.33) for the mail servers for Yahoo! Mail (again the domain name is yahoo.com, not www.yahoo.com ). Did you get an authoritative answer? Why?</a></li><li><a href=#repeat-the-above-but-use-one-of-the-nameservers-obtained-what-is-the-result>Repeat the above but use one of the nameservers obtained. What is the result?</a></li><li><a href=#obtain-the-authoritative-answer-for-the-mail-servers-for-yahoo-mail-what-type-of-dns-query-is-sent-to-obtain-this-information>Obtain the authoritative answer for the mail servers for Yahoo! mail. What type of DNS query is sent to obtain this information?</a></li><li><a href=#simulate-an-iterative-dns-query>Simulate an Iterative DNS Query</a></li><li><a href=#can-one-physical-machine-have-several-names-and-or-ip-addresses-associated-with-it>Can one physical machine have several names and/or IP addresses associated with it?</a></li></ul></li><li><a href=#a-simple-web-server>A Simple Web Server</a></li></ul></nav></div></div><div class=post-content><h1 id=explore-dns-records>Explore DNS records</h1><blockquote><p>DNS servers use different record types for different purposes. For each type of DNS record, there is an associated type of DNS query. Check the following page ( <a href=https://en.wikipedia.org/wiki/List_of_DNS_record_types>https://en.wikipedia.org/wiki/List_of_DNS_record_types</a> ) and find out what the following resource record types are used for:<br>* A<br>* CNAME<br>* MX<br>* NS<br>* PTR<br>* SOA</p></blockquote><ul><li><code>A</code> record - Domain -&gt; IPv4 Address</li><li><code>CNAME</code> - Canonical Name - Alias to another name<br></li><li><code>MX</code> - Mail Exchange - Map domain names to MTAs</li><li><code>NS</code> - Name Server - For subdomain DNS resolving</li><li><code>PTR</code> - Pointer - Like the alias, but doesn&rsquo;t keep trying to resolve -&gt; Used for Reverse DNS</li><li><code>SOA</code> - Start Of Authority - Authoritative information.</li></ul><h1 id=tracing-dns-with-wireshark>Tracing DNS with Wireshark</h1><p><img src="Screenshot from 2020-03-13 11-13-06.png" alt></p><p>File: <a href=./dns-ethereal-trace-2>dns-ethereal-trace-2</a></p><h2 id=what-transport-layer-protocol-is-being-used-by-the-dns-messages>What transport layer protocol is being used by the DNS messages?</h2><p>UDP (User Datagram Protocol)</p><p><strong>Why?</strong><br>Don&rsquo;t need reliability, and also need performance</p><h2 id=what-is-the-source-and-destination-port-for-the-dns-query-message-and-the-corresponding-response>What is the source and destination port for the DNS query message and the corresponding response?</h2><p>Query: Source <code>3742</code> | Dest <code>53</code><br>Response: Source <code>53</code> | Dest <code>3742</code></p><h2 id=to-what-ip-address-is-the-dns-query-message-sent-is-this-the-same-as-the-default-local-dns-server>To what IP address is the DNS query message sent? Is this the same as the default local DNS server?</h2><p><code>128.238.29.22</code></p><p>Yes, it is the same IP.</p><h2 id=how-many-apos-questions-apos-are-contained-in-the-dns-query-message-what-apos-type-apos-of-dns-queries-are-they-does-the-query-message-also-contain-any-apos-answers-apos>How many &apos;questions&apos; are contained in the DNS query message? What &apos;Type&apos; of DNS queries are they? Does the query message also contain any &apos;answers&apos;?</h2><p>One. <code>www.mit.edu: type A, class IN</code>.<br>No answers in the query.</p><h1 id=examine-the-dns-response-message-provide-details-of-the-contents-of-the-apos-answers-apos-apos-authority-apos-and-apos-additional-information-apos-fields-what-can-you-infer-from-these>Examine the DNS response message. Provide details of the contents of the &apos;Answers&apos;, &apos;Authority&apos; and &apos;Additional Information&apos; fields. What can you infer from these?</h1><p>Answer: <code>www.mit.edu: type A, class IN, addr 18.7.22.83</code></p><p>Authoritive Nameservers</p><ul><li><code>mit.edu: type NS, class IN, ns BITSY.mit.edu</code></li><li><code>mit.edu: type NS, class IN, ns STRAWB.mit.edu</code></li><li><code>mit.edu: type NS, class IN, ns W20NS.mit.edu</code></li></ul><p>Additional Records</p><ul><li><code>BITSY.mit.edu: type A, class IN, addr 18.72.0.3</code></li><li><code>STRAWB.mit.edu: type A, class IN, addr 18.71.0.151</code></li><li><code>W20NS.mit.edu: type A, class IN, addr 18.70.0.160</code></li></ul><p><code>www.mit.edu</code> points to the address <code>18.7.22.83</code>.<br>There are three nameservers which handle the (sub)domain names for <code>mit.edu</code> - <code>BITSY</code> (<code>18.72.0.3</code>), <code>STRAWB</code> (<code>18.71.0.151</code>) and <code>W20NS</code> (<code>18.70.0.160</code>).</p><h1 id=digging-into-dns>Digging into DNS</h1><h2 id=what-is-the-ip-address-of-www-cecs-anu-edu-au-what-type-of-dns-query-is-sent-to-get-this-answer>What is the IP address of www.cecs.anu.edu.au? What type of DNS query is sent to get this answer?</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span></pre></td><td class=lntd><pre class=chroma>$&gt; dig www.cecs.anu.edu.au
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-9+deb8u18-Debian &lt;&lt;&gt;&gt; www.cecs.anu.edu.au
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 42848
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;www.cecs.anu.edu.au.           IN      A
+
+;; ANSWER SECTION:
+www.cecs.anu.edu.au.    1518    IN      CNAME   rproxy.cecs.anu.edu.au.
+rproxy.cecs.anu.edu.au. 1518    IN      A       150.203.161.98
+
+;; AUTHORITY SECTION:
+edu.au.                 238     IN      NS      q.au.
+edu.au.                 238     IN      NS      t.au.
+edu.au.                 238     IN      NS      s.au.
+edu.au.                 238     IN      NS      r.au.
+
+;; ADDITIONAL SECTION:
+q.au.                   21726   IN      A       65.22.196.1
+q.au.                   11497   IN      AAAA    2a01:8840:be::1
+r.au.                   27461   IN      A       65.22.197.1
+r.au.                   126705  IN      AAAA    2a01:8840:bf::1
+s.au.                   37577   IN      A       65.22.198.1
+s.au.                   20725   IN      AAAA    2a01:8840:c0::1
+t.au.                   12598   IN      A       65.22.199.1
+t.au.                   7678    IN      AAAA    2a01:8840:c1::1
+
+;; Query time: 0 msec
+;; SERVER: 129.94.242.2#53(129.94.242.2)
+;; WHEN: Fri Mar 13 11:53:49 AEDT 2020
+;; MSG SIZE  rcvd: 325</pre></td></tr></table></div></div><p><code>www.cecs.anu.edu.au</code> points to <code>150.203.161.98</code>. An <code>A</code> record DNS query is sent to get this answer.</p><p>We can confirm this result with a <code>ping</code>, as seen below</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></pre></td><td class=lntd><pre class=chroma>$&gt; ping www.cecs.anu.edu.au -c 1
+PING rproxy.cecs.anu.edu.au (150.203.161.98) 56(84) bytes of data.
+64 bytes from rproxy.cecs.anu.edu.au (150.203.161.98): icmp_seq=1 ttl=52 time=6.40 ms
+
+--- rproxy.cecs.anu.edu.au ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 6.408/6.408/6.408/0.000 ms</pre></td></tr></table></div></div><h2 id=what-is-the-canonical-name-for-the-cecs-anu-web-server-suggest-a-reason-for-having-an-alias-for-this-server>What is the canonical name for the CECS ANU web server? Suggest a reason for having an alias for this server.</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span></pre></td><td class=lntd><pre class=chroma>$&gt; dig www.cecs.anu.edu.au CNAME
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-9+deb8u18-Debian &lt;&lt;&gt;&gt; www.cecs.anu.edu.au CNAME
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 64945
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 3, ADDITIONAL: 4
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;www.cecs.anu.edu.au.           IN      CNAME
+
+;; ANSWER SECTION:
+www.cecs.anu.edu.au.    1359    IN      CNAME   rproxy.cecs.anu.edu.au.
+
+;; AUTHORITY SECTION:
+anu.edu.au.             53      IN      NS      ns.adelaide.edu.au.
+anu.edu.au.             53      IN      NS      una.anu.edu.au.
+anu.edu.au.             53      IN      NS      ns1.anu.edu.au.
+
+;; ADDITIONAL SECTION:
+ns.adelaide.edu.au.     2480    IN      A       129.127.40.3
+ns1.anu.edu.au.         778     IN      A       150.203.1.10
+una.anu.edu.au.         53      IN      A       150.203.22.28
+
+;; Query time: 0 msec
+;; SERVER: 129.94.242.2#53(129.94.242.2)
+;; WHEN: Fri Mar 13 11:56:28 AEDT 2020
+;; MSG SIZE  rcvd: 179</pre></td></tr></table></div></div><p><code>www.cecs.anu.edu.au</code> is a <code>CNAME</code> to <code>rproxy.cecs.anu.edu.au</code>.</p><p>Canonical names and aliases are useful for maintainability, as only <code>rproxy.cecs.anu.edu.au</code> will need to have an <code>A</code> record assigned.<br>Therefore if the IP address of the server machine changes, only one record will need to be updated.</p><h2 id=what-can-you-make-of-the-rest-of-the-response-i-e-the-details-available-in-the-authority-and-additional-sections>What can you make of the rest of the response (i.e. the details available in the Authority and Additional sections)?</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></pre></td><td class=lntd><pre class=chroma>edu.au.                 238     IN      NS      q.au.
+edu.au.                 238     IN      NS      t.au.
+edu.au.                 238     IN      NS      s.au.
+edu.au.                 238     IN      NS      r.au.</pre></td></tr></table></div></div><p>The Authority section notes that the name servers at <code>q.au</code>, <code>t.au</code>, <code>s.au</code> and <code>r.au</code> are responsible for DNS queries of the subdomains of <code>edu.au</code></p><hr><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></pre></td><td class=lntd><pre class=chroma>anu.edu.au.             53      IN      NS      ns.adelaide.edu.au.
+anu.edu.au.             53      IN      NS      una.anu.edu.au.
+anu.edu.au.             53      IN      NS      ns1.anu.edu.au.</pre></td></tr></table></div></div><p>Subdomain records for ANU are managed by <code>ns.adelaide.edu.au</code>, <code>una.anu.edu.au</code> and <code>ns1.anu.edu.au</code>.</p><p>Their IPv4 and IPv6 addresses are shown in the previous dig command output.</p><h2 id=what-is-the-ip-address-of-the-local-nameserver-for-your-machine>What is the IP address of the local nameserver for your machine?</h2><p><code>129.94.242.2</code></p><h2 id=what-are-the-dns-nameservers-for-the-apos-cecs-anu-edu-au-apos-domain-note-the-domain-name-is-cecs-anu-edu-au-and-not-www-cecs-anu-edu-au-find-out-their-ip-addresses-what-type-of-dns-query-is-sent-to-obtain-this-information>What are the DNS nameservers for the &apos;cecs.anu.edu.au&apos; domain (note: the domain name is cecs.anu.edu.au and not www.cecs.anu.edu.au )? Find out their IP addresses? What type of DNS query is sent to obtain this information?</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span></pre></td><td class=lntd><pre class=chroma>$&gt; dig cecs.anu.edu.au NS
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-9+deb8u18-Debian &lt;&lt;&gt;&gt; cecs.anu.edu.au NS
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 37725
+;; flags: qr rd ra; QUERY: 1, ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 7
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;cecs.anu.edu.au.               IN      NS
+
+;; ANSWER SECTION:
+cecs.anu.edu.au.        299     IN      NS      ns4.cecs.anu.edu.au.
+cecs.anu.edu.au.        299     IN      NS      ns3.cecs.anu.edu.au.
+cecs.anu.edu.au.        299     IN      NS      ns2.cecs.anu.edu.au.
+
+;; ADDITIONAL SECTION:
+ns2.cecs.anu.edu.au.    299     IN      A       150.203.161.36
+ns2.cecs.anu.edu.au.    500     IN      AAAA    2001:388:1034:2905::24
+ns3.cecs.anu.edu.au.    299     IN      A       150.203.161.50
+ns3.cecs.anu.edu.au.    500     IN      AAAA    2001:388:1034:2905::32
+ns4.cecs.anu.edu.au.    299     IN      A       150.203.161.38
+ns4.cecs.anu.edu.au.    500     IN      AAAA    2001:388:1034:2905::26
+
+;; Query time: 0 msec
+;; SERVER: 129.94.242.2#53(129.94.242.2)
+;; WHEN: Fri Mar 13 12:02:58 AEDT 2020
+;; MSG SIZE  rcvd: 230</pre></td></tr></table></div></div><p><em>Ignoring IPv6 / AAAA records&hellip;</em><br>The nameservers for <code>cecs.anu.edu.au</code> are <code>ns2.cecs.anu.edu.au</code> (<code>150.203.161.36</code>), <code>ns3.cecs.anu.edu.au</code> (<code>150.203.161.50</code>) and <code>ns3.cecs.anu.edu.au</code> (<code>150.203.161.38</code>).</p><p>An <code>NS</code> query was sent to obtain this information</p><h2 id=what-is-the-dns-name-associated-with-the-ip-address-111-68-101-54-what-type-of-dns-query-is-sent-to-obtain-this-information>What is the DNS name associated with the IP address 111.68.101.54? What type of DNS query is sent to obtain this information?</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span></pre></td><td class=lntd><pre class=chroma>$&gt; dig -x 111.68.101.54
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-9+deb8u18-Debian &lt;&lt;&gt;&gt; -x 111.68.101.54
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 58962
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 2, ADDITIONAL: 3
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;54.101.68.111.in-addr.arpa.    IN      PTR
+
+;; ANSWER SECTION:
+54.101.68.111.in-addr.arpa. 1213 IN     PTR     webserver.seecs.nust.edu.pk.
+
+;; AUTHORITY SECTION:
+101.68.111.in-addr.arpa. 22072  IN      NS      ns2.hec.gov.pk.
+101.68.111.in-addr.arpa. 22072  IN      NS      ns1.hec.gov.pk.
+
+;; ADDITIONAL SECTION:
+ns1.hec.gov.pk.         1212    IN      A       103.4.93.5
+ns2.hec.gov.pk.         1212    IN      A       103.4.93.6
+
+;; Query time: 0 msec
+;; SERVER: 129.94.242.2#53(129.94.242.2)
+;; WHEN: Fri Mar 13 12:05:18 AEDT 2020
+;; MSG SIZE  rcvd: 172</pre></td></tr></table></div></div><p><code>111.68.101.54</code> points to <code>webserver.seecs.nust.edu.pk</code>.</p><p>A <code>PTR</code> query (Reverse DNS lookup) was sent to obtain this information.</p><h2 id=run-dig-and-query-the-cse-nameserver-129-94-242-33-for-the-mail-servers-for-yahoo-mail-again-the-domain-name-is-yahoo-com-not-www-yahoo-com-did-you-get-an-authoritative-answer-why>Run dig and query the CSE nameserver (129.94.242.33) for the mail servers for Yahoo! Mail (again the domain name is yahoo.com, not www.yahoo.com ). Did you get an authoritative answer? Why?</h2><p><em>HINT: Just because a response contains information in the authoritative part of the DNS response message does not mean it came from an authoritative name server. You should examine the flags in the response to determine the answer</em></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span></pre></td><td class=lntd><pre class=chroma>$&gt; dig @129.94.242.33 yahoo.com MX
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-9+deb8u18-Debian &lt;&lt;&gt;&gt; @129.94.242.33 yahoo.com MX
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 38935
+;; flags: qr rd ra; QUERY: 1, ANSWER: 3, AUTHORITY: 5, ADDITIONAL: 10
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;yahoo.com.                     IN      MX
+
+;; ANSWER SECTION:
+yahoo.com.              1122    IN      MX      1 mta6.am0.yahoodns.net.
+yahoo.com.              1122    IN      MX      1 mta7.am0.yahoodns.net.
+yahoo.com.              1122    IN      MX      1 mta5.am0.yahoodns.net.
+
+;; AUTHORITY SECTION:
+yahoo.com.              8763    IN      NS      ns3.yahoo.com.
+yahoo.com.              8763    IN      NS      ns5.yahoo.com.
+yahoo.com.              8763    IN      NS      ns2.yahoo.com.
+yahoo.com.              8763    IN      NS      ns4.yahoo.com.
+yahoo.com.              8763    IN      NS      ns1.yahoo.com.
+
+;; ADDITIONAL SECTION:
+ns1.yahoo.com.          428328  IN      A       68.180.131.16
+ns1.yahoo.com.          27501   IN      AAAA    2001:4998:130::1001
+ns2.yahoo.com.          384130  IN      A       68.142.255.16
+ns2.yahoo.com.          62254   IN      AAAA    2001:4998:140::1002
+ns3.yahoo.com.          311     IN      A       27.123.42.42
+ns3.yahoo.com.          186     IN      AAAA    2406:8600:f03f:1f8::1003
+ns4.yahoo.com.          529675  IN      A       98.138.11.157
+ns5.yahoo.com.          9135    IN      A       202.165.97.53
+ns5.yahoo.com.          62254   IN      AAAA    2406:2000:ff60::53
+
+;; Query time: 0 msec
+;; SERVER: 129.94.242.33#53(129.94.242.33)
+;; WHEN: Fri Mar 13 12:07:10 AEDT 2020
+;; MSG SIZE  rcvd: 399</pre></td></tr></table></div></div><p>The mail servers are <code>mta5.am0.yahoodns.net</code>, <code>mta6.am0.yahoodns.net</code>, and <code>mta7.am0.yahoodns.net</code>.</p><p>An authoritive answer would have the <code>aa</code> flag in the dig answer flags.<br>We do not have this flag, and therefore we do not have an authoritve answer.</p><h2 id=repeat-the-above-but-use-one-of-the-nameservers-obtained-what-is-the-result>Repeat the above but use one of the nameservers obtained. What is the result?</h2><p><em>Using <code>ns3.yahoo.com</code></em></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span></pre></td><td class=lntd><pre class=chroma>$&gt; dig @ns3.yahoo.com yahoo.com MX
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-9+deb8u18-Debian &lt;&lt;&gt;&gt; @ns3.yahoo.com yahoo.com MX
+; (2 servers found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 5815
+;; flags: qr aa rd; QUERY: 1, ANSWER: 3, AUTHORITY: 5, ADDITIONAL: 10
+;; WARNING: recursion requested but not available
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1272
+;; QUESTION SECTION:
+;yahoo.com.                     IN      MX
+
+;; ANSWER SECTION:
+yahoo.com.              1800    IN      MX      1 mta5.am0.yahoodns.net.
+yahoo.com.              1800    IN      MX      1 mta7.am0.yahoodns.net.
+yahoo.com.              1800    IN      MX      1 mta6.am0.yahoodns.net.
+
+;; AUTHORITY SECTION:
+yahoo.com.              172800  IN      NS      ns2.yahoo.com.
+yahoo.com.              172800  IN      NS      ns4.yahoo.com.
+yahoo.com.              172800  IN      NS      ns5.yahoo.com.
+yahoo.com.              172800  IN      NS      ns1.yahoo.com.
+yahoo.com.              172800  IN      NS      ns3.yahoo.com.
+
+;; ADDITIONAL SECTION:
+ns1.yahoo.com.          86400   IN      AAAA    2001:4998:130::1001
+ns2.yahoo.com.          86400   IN      AAAA    2001:4998:140::1002
+ns3.yahoo.com.          1800    IN      AAAA    2406:8600:f03f:1f8::1003
+ns5.yahoo.com.          86400   IN      AAAA    2406:2000:ff60::53
+ns1.yahoo.com.          1209600 IN      A       68.180.131.16
+ns2.yahoo.com.          1209600 IN      A       68.142.255.16
+ns3.yahoo.com.          1800    IN      A       27.123.42.42
+ns4.yahoo.com.          1209600 IN      A       98.138.11.157
+ns5.yahoo.com.          86400   IN      A       202.165.97.53
+
+;; Query time: 262 msec
+;; SERVER: 2406:8600:f03f:1f8::1003#53(2406:8600:f03f:1f8::1003)
+;; WHEN: Fri Mar 13 12:08:58 AEDT 2020
+;; MSG SIZE  rcvd: 399</pre></td></tr></table></div></div><p>The mail servers are <code>mta5.am0.yahoodns.net</code>, <code>mta6.am0.yahoodns.net</code>, and <code>mta7.am0.yahoodns.net</code>.</p><p>We now have the <code>aa</code> flag in the answer, meaning that this was an authoritive answer.</p><h2 id=obtain-the-authoritative-answer-for-the-mail-servers-for-yahoo-mail-what-type-of-dns-query-is-sent-to-obtain-this-information>Obtain the authoritative answer for the mail servers for Yahoo! mail. What type of DNS query is sent to obtain this information?</h2><p>From the above, the mail servers (MX records) are <code>mta5.am0.yahoodns.net</code>, <code>mta7.am0.yahoodns.net</code>, <code>mta6.am0.yahoodns.net</code>.<br>A <code>MX</code> query was sent to obtain this information</p><h2 id=simulate-an-iterative-dns-query>Simulate an Iterative DNS Query</h2><blockquote><p>In this exercise you simulate the iterative DNS query process to find the IP address of your machine (e.g. lyre00.cse.unsw.edu.au). First, find the name server (query type NS) of the &apos;.&apos; domain (root domain). Query this nameserver to find the authoritative name server for the &apos;au.&apos; domain. Query this second server to find the authoritative nameserver for the &apos;edu.au.&apos; domain. Now query this nameserver to find the authoritative nameserver for &apos;unsw.edu.au&apos;. Next query the nameserver of unsw.edu.au to find the authoritative name server of cse.unsw.edu.au. Now query the nameserver of cse.unsw.edu.au to find the IP address of your host. How many DNS servers do you have to query to get the authoritative answer?</p></blockquote><p>Using the <code>wagner.orchestra.cse.unsw.edu.au</code> machine&hellip;</p><table><thead><tr><th align=left>Command</th><th align=left>Result</th></tr></thead><tbody><tr><td align=left><code>dig . NS</code></td><td align=left><code>. 195026 IN NS a.root-servers.net.</code></td></tr><tr><td align=left><code>dig @a.root-servers.net au. NS</code></td><td align=left><code>au. 172800 IN NS a.au.</code></td></tr><tr><td align=left><code>dig @a.au edu.au. NS</code></td><td align=left><code>edu.au. 86400 IN NS r.au.</code></td></tr><tr><td align=left><code>dig @r.au unsw.edu.au NS</code></td><td align=left><code>unsw.edu.au. 900 IN NS ns1.unsw.edu.au.</code></td></tr><tr><td align=left><code>dig @ns1.unsw.edu.au cse.unsw.edu.au NS</code></td><td align=left><code>cse.unsw.edu.au. 10800 IN NS beethoven.orchestra.cse.unsw.edu.au.</code></td></tr><tr><td align=left><code>dig @beethoven.orchestra.cse.unsw.edu.au orchestra.cse.unsw.edu.au NS</code></td><td align=left><code>orchestra.cse.unsw.edu.au. 3600 IN NS beethoven.orchestra.cse.unsw.edu.au.</code></td></tr><tr><td align=left><code>dig @beethoven.orchestra.cse.unsw.edu.au wagner.orchestra.cse.unsw.edu.au</code></td><td align=left><code>wagner.orchestra.cse.unsw.edu.au. 3600 IN A 129.94.242.19</code></td></tr></tbody></table><p><code>wagner.orchestra.cse.unsw.edu.au</code> points to <code>129.94.242.19</code>.<br>We performed 7 queries on 6 different DNS servers to get this answer.</p><p><strong>Trace</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span><span class=lnt>158
+</span><span class=lnt>159
+</span><span class=lnt>160
+</span><span class=lnt>161
+</span><span class=lnt>162
+</span><span class=lnt>163
+</span><span class=lnt>164
+</span><span class=lnt>165
+</span><span class=lnt>166
+</span><span class=lnt>167
+</span><span class=lnt>168
+</span><span class=lnt>169
+</span><span class=lnt>170
+</span><span class=lnt>171
+</span><span class=lnt>172
+</span><span class=lnt>173
+</span><span class=lnt>174
+</span><span class=lnt>175
+</span><span class=lnt>176
+</span><span class=lnt>177
+</span><span class=lnt>178
+</span><span class=lnt>179
+</span><span class=lnt>180
+</span><span class=lnt>181
+</span><span class=lnt>182
+</span><span class=lnt>183
+</span><span class=lnt>184
+</span><span class=lnt>185
+</span><span class=lnt>186
+</span><span class=lnt>187
+</span><span class=lnt>188
+</span><span class=lnt>189
+</span><span class=lnt>190
+</span><span class=lnt>191
+</span><span class=lnt>192
+</span><span class=lnt>193
+</span><span class=lnt>194
+</span><span class=lnt>195
+</span><span class=lnt>196
+</span><span class=lnt>197
+</span><span class=lnt>198
+</span><span class=lnt>199
+</span><span class=lnt>200
+</span><span class=lnt>201
+</span><span class=lnt>202
+</span><span class=lnt>203
+</span><span class=lnt>204
+</span><span class=lnt>205
+</span><span class=lnt>206
+</span><span class=lnt>207
+</span><span class=lnt>208
+</span><span class=lnt>209
+</span><span class=lnt>210
+</span><span class=lnt>211
+</span><span class=lnt>212
+</span><span class=lnt>213
+</span><span class=lnt>214
+</span><span class=lnt>215
+</span><span class=lnt>216
+</span><span class=lnt>217
+</span><span class=lnt>218
+</span><span class=lnt>219
+</span><span class=lnt>220
+</span><span class=lnt>221
+</span><span class=lnt>222
+</span><span class=lnt>223
+</span><span class=lnt>224
+</span><span class=lnt>225
+</span><span class=lnt>226
+</span><span class=lnt>227
+</span><span class=lnt>228
+</span><span class=lnt>229
+</span><span class=lnt>230
+</span><span class=lnt>231
+</span><span class=lnt>232
+</span><span class=lnt>233
+</span><span class=lnt>234
+</span><span class=lnt>235
+</span><span class=lnt>236
+</span><span class=lnt>237
+</span><span class=lnt>238
+</span><span class=lnt>239
+</span><span class=lnt>240
+</span><span class=lnt>241
+</span><span class=lnt>242
+</span><span class=lnt>243
+</span><span class=lnt>244
+</span><span class=lnt>245
+</span><span class=lnt>246
+</span><span class=lnt>247
+</span><span class=lnt>248
+</span><span class=lnt>249
+</span><span class=lnt>250
+</span><span class=lnt>251
+</span><span class=lnt>252
+</span><span class=lnt>253
+</span><span class=lnt>254
+</span><span class=lnt>255
+</span><span class=lnt>256
+</span><span class=lnt>257
+</span><span class=lnt>258
+</span><span class=lnt>259
+</span><span class=lnt>260
+</span><span class=lnt>261
+</span><span class=lnt>262
+</span><span class=lnt>263
+</span><span class=lnt>264
+</span><span class=lnt>265
+</span><span class=lnt>266
+</span></pre></td><td class=lntd><pre class=chroma>$&gt; dig . NS
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-9+deb8u18-Debian &lt;&lt;&gt;&gt; . NS
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 29980
+;; flags: qr rd ra; QUERY: 1, ANSWER: 13, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;.                              IN      NS
+
+;; ANSWER SECTION:
+.                       194644  IN      NS      i.root-servers.net.
+.                       194644  IN      NS      b.root-servers.net.
+.                       194644  IN      NS      l.root-servers.net.
+.                       194644  IN      NS      j.root-servers.net.
+.                       194644  IN      NS      d.root-servers.net.
+.                       194644  IN      NS      g.root-servers.net.
+.                       194644  IN      NS      k.root-servers.net.
+.                       194644  IN      NS      h.root-servers.net.
+.                       194644  IN      NS      m.root-servers.net.
+.                       194644  IN      NS      a.root-servers.net.
+.                       194644  IN      NS      f.root-servers.net.
+.                       194644  IN      NS      c.root-servers.net.
+.                       194644  IN      NS      e.root-servers.net.
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.     285193  IN      A       198.41.0.4
+a.root-servers.net.     316986  IN      AAAA    2001:503:ba3e::2:30
+b.root-servers.net.     353811  IN      A       199.9.14.201
+b.root-servers.net.     528193  IN      AAAA    2001:500:200::b
+c.root-servers.net.     2136    IN      A       192.33.4.12
+c.root-servers.net.     32208   IN      AAAA    2001:500:2::c
+d.root-servers.net.     426837  IN      A       199.7.91.13
+d.root-servers.net.     32208   IN      AAAA    2001:500:2d::d
+e.root-servers.net.     178461  IN      A       192.203.230.10
+e.root-servers.net.     186900  IN      AAAA    2001:500:a8::e
+f.root-servers.net.     428837  IN      A       192.5.5.241
+f.root-servers.net.     32208   IN      AAAA    2001:500:2f::f
+g.root-servers.net.     347706  IN      A       192.112.36.4
+g.root-servers.net.     327320  IN      AAAA    2001:500:12::d0d
+h.root-servers.net.     286693  IN      A       198.97.190.53
+h.root-servers.net.     32208   IN      AAAA    2001:500:1::53
+i.root-servers.net.     15231   IN      A       192.36.148.17
+i.root-servers.net.     32208   IN      AAAA    2001:7fe::53
+j.root-servers.net.     35923   IN      A       192.58.128.30
+j.root-servers.net.     180794  IN      AAAA    2001:503:c27::2:30
+k.root-servers.net.     199829  IN      A       193.0.14.129
+k.root-servers.net.     185662  IN      AAAA    2001:7fd::1
+l.root-servers.net.     286910  IN      A       199.7.83.42
+l.root-servers.net.     32208   IN      AAAA    2001:500:9f::42
+m.root-servers.net.     173007  IN      A       202.12.27.33
+m.root-servers.net.     32208   IN      AAAA    2001:dc3::35
+
+;; Query time: 0 msec
+;; SERVER: 129.94.242.2#53(129.94.242.2)
+;; WHEN: Fri Mar 13 12:22:06 AEDT 2020
+;; MSG SIZE  rcvd: 811
+
+$&gt; dig @a.root-servers.net au. NS
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-9+deb8u18-Debian &lt;&lt;&gt;&gt; @a.root-servers.net au. NS
+; (2 servers found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 43112
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 9, ADDITIONAL: 19
+;; WARNING: recursion requested but not available
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;au.                            IN      NS
+
+;; AUTHORITY SECTION:
+au.                     172800  IN      NS      m.au.
+au.                     172800  IN      NS      d.au.
+au.                     172800  IN      NS      q.au.
+au.                     172800  IN      NS      t.au.
+au.                     172800  IN      NS      s.au.
+au.                     172800  IN      NS      r.au.
+au.                     172800  IN      NS      n.au.
+au.                     172800  IN      NS      a.au.
+au.                     172800  IN      NS      c.au.
+
+;; ADDITIONAL SECTION:
+m.au.                   172800  IN      A       156.154.100.24
+m.au.                   172800  IN      AAAA    2001:502:2eda::24
+d.au.                   172800  IN      A       162.159.25.38
+d.au.                   172800  IN      AAAA    2400:cb00:2049:1::a29f:1926
+q.au.                   172800  IN      A       65.22.196.1
+q.au.                   172800  IN      AAAA    2a01:8840:be::1
+t.au.                   172800  IN      A       65.22.199.1
+t.au.                   172800  IN      AAAA    2a01:8840:c1::1
+s.au.                   172800  IN      A       65.22.198.1
+s.au.                   172800  IN      AAAA    2a01:8840:c0::1
+r.au.                   172800  IN      A       65.22.197.1
+r.au.                   172800  IN      AAAA    2a01:8840:bf::1
+n.au.                   172800  IN      A       156.154.101.24
+n.au.                   172800  IN      AAAA    2001:502:ad09::24
+a.au.                   172800  IN      A       58.65.254.73
+a.au.                   172800  IN      AAAA    2407:6e00:254:306::73
+c.au.                   172800  IN      A       162.159.24.179
+c.au.                   172800  IN      AAAA    2400:cb00:2049:1::a29f:18b3
+
+;; Query time: 116 msec
+;; SERVER: 2001:503:ba3e::2:30#53(2001:503:ba3e::2:30)
+;; WHEN: Fri Mar 13 12:22:20 AEDT 2020
+;; MSG SIZE  rcvd: 571
+
+$&gt; dig @a.au edu.au. NS
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-9+deb8u18-Debian &lt;&lt;&gt;&gt; @a.au edu.au. NS
+; (2 servers found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 60489
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 9
+;; WARNING: recursion requested but not available
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;edu.au.                                IN      NS
+
+;; AUTHORITY SECTION:
+edu.au.                 86400   IN      NS      q.au.
+edu.au.                 86400   IN      NS      t.au.
+edu.au.                 86400   IN      NS      r.au.
+edu.au.                 86400   IN      NS      s.au.
+
+;; ADDITIONAL SECTION:
+q.au.                   86400   IN      A       65.22.196.1
+r.au.                   86400   IN      A       65.22.197.1
+s.au.                   86400   IN      A       65.22.198.1
+t.au.                   86400   IN      A       65.22.199.1
+q.au.                   86400   IN      AAAA    2a01:8840:be::1
+r.au.                   86400   IN      AAAA    2a01:8840:bf::1
+s.au.                   86400   IN      AAAA    2a01:8840:c0::1
+t.au.                   86400   IN      AAAA    2a01:8840:c1::1
+
+;; Query time: 161 msec
+;; SERVER: 2407:6e00:254:306::73#53(2407:6e00:254:306::73)
+;; WHEN: Fri Mar 13 12:22:30 AEDT 2020
+;; MSG SIZE  rcvd: 275
+
+$&gt; dig @r.au unsw.edu.au NS
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-9+deb8u18-Debian &lt;&lt;&gt;&gt; @r.au unsw.edu.au NS
+; (2 servers found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 15654
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 6
+;; WARNING: recursion requested but not available
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;unsw.edu.au.                   IN      NS
+
+;; AUTHORITY SECTION:
+unsw.edu.au.            900     IN      NS      ns2.unsw.edu.au.
+unsw.edu.au.            900     IN      NS      ns1.unsw.edu.au.
+unsw.edu.au.            900     IN      NS      ns3.unsw.edu.au.
+
+;; ADDITIONAL SECTION:
+ns1.unsw.edu.au.        900     IN      AAAA    2001:388:c:35::1
+ns2.unsw.edu.au.        900     IN      AAAA    2001:388:c:35::2
+ns1.unsw.edu.au.        900     IN      A       129.94.0.192
+ns2.unsw.edu.au.        900     IN      A       129.94.0.193
+ns3.unsw.edu.au.        900     IN      A       192.155.82.178
+
+;; Query time: 20 msec
+;; SERVER: 2a01:8840:bf::1#53(2a01:8840:bf::1)
+;; WHEN: Fri Mar 13 12:22:39 AEDT 2020
+;; MSG SIZE  rcvd: 198
+
+$&gt; dig @ns1.unsw.edu.au cse.unsw.edu.au NS
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-9+deb8u18-Debian &lt;&lt;&gt;&gt; @ns1.unsw.edu.au cse.unsw.edu.au NS
+; (2 servers found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 44014
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 5
+;; WARNING: recursion requested but not available
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;cse.unsw.edu.au.               IN      NS
+
+;; AUTHORITY SECTION:
+cse.unsw.edu.au.        10800   IN      NS      maestro.orchestra.cse.unsw.edu.au.
+cse.unsw.edu.au.        10800   IN      NS      beethoven.orchestra.cse.unsw.edu.au.
+
+;; ADDITIONAL SECTION:
+beethoven.orchestra.cse.unsw.edu.au. 10800 IN A 129.94.172.11
+beethoven.orchestra.cse.unsw.edu.au. 10800 IN A 129.94.208.3
+beethoven.orchestra.cse.unsw.edu.au. 10800 IN A 129.94.242.2
+maestro.orchestra.cse.unsw.edu.au. 10800 IN A   129.94.242.33
+
+;; Query time: 4 msec
+;; SERVER: 2001:388:c:35::1#53(2001:388:c:35::1)
+;; WHEN: Fri Mar 13 12:22:48 AEDT 2020
+;; MSG SIZE  rcvd: 164
+
+$&gt; dig @beethoven.orchestra.cse.unsw.edu.au orchestra.cse.unsw.edu.au NS
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-9+deb8u18-Debian &lt;&lt;&gt;&gt; @beethoven.orchestra.cse.unsw.edu.au orchestra.cse.unsw.edu.au NS
+; (3 servers found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 57788
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 3
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;orchestra.cse.unsw.edu.au.     IN      NS
+
+;; ANSWER SECTION:
+orchestra.cse.unsw.edu.au. 3600 IN      NS      beethoven.orchestra.cse.unsw.edu.au.
+orchestra.cse.unsw.edu.au. 3600 IN      NS      maestro.orchestra.cse.unsw.edu.au.
+
+;; ADDITIONAL SECTION:
+maestro.orchestra.cse.unsw.edu.au. 3600 IN A    129.94.242.33
+beethoven.orchestra.cse.unsw.edu.au. 3600 IN A  129.94.242.2
+
+;; Query time: 0 msec
+;; SERVER: 129.94.242.2#53(129.94.242.2)
+;; WHEN: Fri Mar 13 12:23:02 AEDT 2020
+;; MSG SIZE  rcvd: 132
+
+$&gt; dig @beethoven.orchestra.cse.unsw.edu.au wagner.orchestra.cse.unsw.edu.au 
+
+; &lt;&lt;&gt;&gt; DiG 9.9.5-9+deb8u18-Debian &lt;&lt;&gt;&gt; @beethoven.orchestra.cse.unsw.edu.au wagner.orchestra.cse.unsw.edu.au
+; (3 servers found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 43276
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 2, ADDITIONAL: 3
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;wagner.orchestra.cse.unsw.edu.au. IN   A
+
+;; ANSWER SECTION:
+wagner.orchestra.cse.unsw.edu.au. 3600 IN A     129.94.242.19
+
+;; AUTHORITY SECTION:
+orchestra.cse.unsw.edu.au. 3600 IN      NS      beethoven.orchestra.cse.unsw.edu.au.
+orchestra.cse.unsw.edu.au. 3600 IN      NS      maestro.orchestra.cse.unsw.edu.au.
+
+;; ADDITIONAL SECTION:
+maestro.orchestra.cse.unsw.edu.au. 3600 IN A    129.94.242.33
+beethoven.orchestra.cse.unsw.edu.au. 3600 IN A  129.94.242.2
+
+;; Query time: 1 msec
+;; SERVER: 129.94.242.2#53(129.94.242.2)
+;; WHEN: Fri Mar 13 12:23:18 AEDT 2020
+;; MSG SIZE  rcvd: 155</pre></td></tr></table></div></div><h2 id=can-one-physical-machine-have-several-names-and-or-ip-addresses-associated-with-it>Can one physical machine have several names and/or IP addresses associated with it?</h2><p>Yes, a machine can have several hostnames / DNS names associated with it.<br>Additionally, a machine can have several IP addresses (i.e. several network cards on the same machine).</p><h1 id=a-simple-web-server>A Simple Web Server</h1><p>File: <a href=./aSimpleWebServer/WebServer.py>WebServer.py</a></p></div><footer class=post-footer><nav class=post-nav><a class=prev href=../../post/http/><i class="iconfont icon-left"></i><span class="prev-text nav-default">Http</span>
+<span class="prev-text nav-mobile">Prev</span></a>
+<a class=next href=../../post/dns/><span class="next-text nav-default">DNS</span>
+<span class="next-text nav-mobile">Next</span>
+<i class="iconfont icon-right"></i></a></nav></footer></article></div></div></main><footer id=footer class=footer><div class=social-links><a href=mailto:z5206677@student.unsw.edu.au class="iconfont icon-email" title=email></a><a href=https://www.linkedin.com/in/andrewjinmengwong/ class="iconfont icon-linkedin" title=linkedin></a><a href=https://github.com/featherbear class="iconfont icon-github" title=github></a><a href=https://www.instagram.com/_andrewjwong/ class="iconfont icon-instagram" title=instagram></a><a href=../../index.xml type=application/rss+xml class="iconfont icon-rss" title=rss></a></div><div class=copyright><span class=power-by>Powered by <a class=hexo-link href=https://gohugo.io>Hugo</a></span>
+<span class=division>|</span>
+<span class=theme-info>Theme -
+<a class=theme-link href=https://github.com/olOwOlo/hugo-theme-even>Even</a></span>
+<span class=copyright-year>&copy;
+2020
+<span class=heart><i class="iconfont icon-heart"></i></span><span class=author>Andrew Wong (z5206677)</span></span></div></footer><div class=back-to-top id=back-to-top><i class="iconfont icon-up"></i></div></div><script src=https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin=anonymous></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin=anonymous></script><script type=text/javascript src=../../dist/even.26188efa.min.js></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-107434487-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script><script src=../../js/typed.js@2.0.9></script><script src=../../js/typedjs.shortcode.js></script></body></html>
