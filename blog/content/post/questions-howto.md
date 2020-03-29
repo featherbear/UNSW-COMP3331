@@ -87,3 +87,38 @@ In total: 2RTT + S0/C + RTT + N(S/C)
 **Answer: D**
 
 
+# UDP
+
+![](Screenshot from 2020-03-23 15-58-44.png)
+
+**Answer: A**  
+
+The server uses only one socket to receive, and send messages to each client
+
+# TCP
+
+![](Screenshot from 2020-03-23 16-07-31.png)
+
+**Answer: E**
+
+There is an extra socket that is used as a welcoming socket.
+
+## TCP Sockets
+
+![](Screenshot from 2020-03-23 16-08-58.png)
+
+**Answer: A**
+
+Each socket uses the same server-side port
+
+# RDT
+
+![](Screenshot from 2020-03-23 16-57-27.png)
+
+**Answer: D**
+
+Checksums, ACKs, Sequence Number
+
+![](Screenshot from 2020-03-23 18-37-13.png)
+
+**Answer: B**
