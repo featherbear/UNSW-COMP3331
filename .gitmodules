@@ -1,3 +1,6 @@
 [submodule "blog/themes/hugo-theme-even"]
 	path = blog/themes/hugo-theme-even
 	url = https://github.com/olOwOlo/hugo-theme-even/
+[submodule "assignment"]
+	path = assignment
+	url = https://github.com/featherbear/UNSW-COMP3331-assign
