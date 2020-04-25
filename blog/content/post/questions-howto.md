@@ -141,3 +141,20 @@ Checksums, ACKs, Sequence Number
 ![](Screenshot from 2020-03-23 18-37-13.png)
 
 **Answer: B**
+
+# IP Subnets
+
+![](Screenshot from 2020-04-26 01-16-41.png)
+
+![](Screenshot from 2020-04-26 01-20-11.png)
+
+Look at the host bits, and see the maximum number those bits can form (ie `2^n`).  
+Remember, two of these address will be used by the network address and broadcast address, so there are `2^n - 2` usable addresses
+
+![](Screenshot from 2020-04-26 01-22-42.png)
+
+![](Screenshot from 2020-04-26 01-25-08.png)
+![](Screenshot from 2020-04-26 01-25-14.png)
+![](Screenshot from 2020-04-26 01-25-18.png)
+![](Screenshot from 2020-04-26 01-25-24.png)
+![](Screenshot from 2020-04-26 01-25-30.png)
