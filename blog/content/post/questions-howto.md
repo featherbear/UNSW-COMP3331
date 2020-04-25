@@ -111,6 +111,25 @@ There is an extra socket that is used as a welcoming socket.
 
 Each socket uses the same server-side port
 
+## TCP Sequence Number
+
+![](Screenshot from 2020-04-25 00-47-25.png)
+
+**Answer: C**
+
+
+## TCP Sequence Number 2
+
+![](Screenshot from 2020-04-25 00-54-41.png)
+
+**Answer: A**
+
+## TCP Timeout
+
+![](Screenshot from 2020-04-25 00-58-47.png)
+
+**Answer: D**
+
 # RDT
 
 ![](Screenshot from 2020-03-23 16-57-27.png)
