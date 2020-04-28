@@ -158,3 +158,9 @@ Remember, two of these address will be used by the network address and broadcast
 ![](Screenshot from 2020-04-26 01-25-18.png)
 ![](Screenshot from 2020-04-26 01-25-24.png)
 ![](Screenshot from 2020-04-26 01-25-30.png)
+
+# Error Detection and Correction
+
+![](Screenshot from 2020-04-26 19-02-38.png)
+
+**Answer: C**
