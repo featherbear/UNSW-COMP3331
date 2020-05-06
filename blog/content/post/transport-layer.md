@@ -129,6 +129,8 @@ U_sender = L/R / (RTT + L/R)
 |:----------------:|:-------------:|
 |![](Screenshot from 2020-03-23 18-48-07.png)|![](Screenshot from 2020-03-23 18-48-14.png)|
 
+* `window size = U * (R/L*RTT + 1)`
+
 ### Go-Back-N
 
 ![](Screenshot from 2020-03-23 19-14-26.png)
@@ -142,13 +144,14 @@ U_sender = L/R / (RTT + L/R)
   * Only sends **cumulative ACK** - does not acknowledge out of order packets
 * **Receiver Window Size = 1**
 * **Sender Window Size < 2^m**
-  * If `size (N) = 2^m`
-    * If all of the packets were received
-      * The sliding window would move to the next `0 - n` sequences
-      * If all ACKs were lost, the sender would retransmit all of the first packets
-      * The receiver would then consider these retransmitted packets as the _next_ `0 - n` packets
-    * ![](Screenshot from 2020-03-23 19-41-14.png)
-    * [Source](https://www.eit.lth.se/fileadmin/eit/courses/etsf15/vt16/Problems/ComNet-FramingProblems.pdf)
+
+* If `size (N) = 2^m`
+  * If all of the packets were received
+    * The sliding window would move to the next `0 - n` sequences
+    * If all ACKs were lost, the sender would retransmit all of the first packets
+    * The receiver would then consider these retransmitted packets as the _next_ `0 - n` packets
+  * ![](Screenshot from 2020-03-23 19-41-14.png)
+  * [Source](https://www.eit.lth.se/fileadmin/eit/courses/etsf15/vt16/Problems/ComNet-FramingProblems.pdf)
 
 ### Selective Repeat
 

@@ -89,16 +89,14 @@ Solution: Maths.
 
 SampleRTT - Time from segment transmission until last ACK receipt (ignore retransmission).  
 
-**EstimatedRTT = (1-alpha) * EstimatedRTT + alpha*SampleRTT**
-
-The timeout interval is calculated to be **Timeout Interval = EstimatedRTT + 4*DevRTT**.  
+* **EstimatedRTT = (1-α) * EstimatedRTT_prev + α*SampleRTT**
+* **DevRTT = (1-ß)\*DevRTT + ß\*|SampleRTT-EstimatedRTT|**
+* **Timeout Interval = EstimatedRTT + 4*DevRTT**
 
 Where there is a safety margin to allow for deviations in the EstimatedRTT.
 
-**DevRTT = (1-beta)\*DevRTT + B\*|SampleRTT-EstimatedRTT|)**
-
-* `alpha == 0.125`
-* `beta == 0.25`
+* `α = 0.125`
+* `ß = 0.25`
 
 # TCP Fast Retransmit
 
