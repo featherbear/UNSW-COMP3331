@@ -114,6 +114,9 @@ Nothing is needed to be done
 
 ## Stop-and-Wait Operation
 
+Waits for the ACK of the packet.  
+Needs only 1 bit space (0, 1) and alternates.
+
 ![](Screenshot from 2020-03-23 18-44-56.png)
 
 U_sender = L/R / (RTT + L/R)
